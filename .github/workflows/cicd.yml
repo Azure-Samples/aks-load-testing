@@ -1,0 +1,107 @@
+name: Provision and Deploy
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: aksloadtestdemo.azurecr.io
+          username: ${{ secrets.ACR_LOGIN }}
+          password: ${{ secrets.ACR_SECRET }}
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v4
+        with:
+          push: true # Will only build if this is not here
+          context: azure-vote
+          tags: |
+            aksloadtestdemo.azurecr.io/${{ github.repository }}:${{ github.sha }}
+            aksloadtestdemo.azurecr.io/${{ github.repository }}:latest
+  load-test:
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      matrix:
+        frontend_replicas: [3]
+        frontend_cpu_limit: [250m]
+        frontend_mem_limit: [256Mi]
+      max-parallel: 1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Azure authentication (load testing)
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Get AKS Credentials
+        run: |
+          az aks get-credentials --resource-group ${{ secrets.AZURE_RESOURCE_GROUP_NAME }} --name ${{ secrets.AKS_NAME }}
+      - name: Apply Kubernetes Configuration
+        run: |
+          envsubst < manifests/staging-app.yaml | kubectl apply -f -
+        env:
+          FRONTEND_IMAGE: aksloadtestdemo.azurecr.io/${{ github.repository }}:${{ github.sha }}
+      - name: Create version ID
+        id: version
+        run: |
+          echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "FRONTEND_HOST=$(kubectl get service azure-vote-front-stage -o jsonpath='{.status.loadBalancer.ingress[0].ip}')" >> $GITHUB_OUTPUT
+      - name: 'Azure Load Testing'
+        uses: tonybaloney/load-testing@write_metrics_to_pr
+        with:
+          loadTestConfigFile: 'loadtests/staging-test.yaml'
+          loadTestResource: ${{ secrets.AZURE_LOAD_TEST_NAME }}
+          loadTestRunName: "GitHub Action ${{ steps.version.outputs.sha_short }}"
+          loadTestRunDescription: ${{ github.event.head_commit.message }}
+          resourceGroup: ${{ secrets.AZURE_RESOURCE_GROUP_NAME }}
+          env: |
+            [
+              {
+              "name": "host",
+              "value": "${{ steps.version.outputs.FRONTEND_HOST }}"
+              }
+            ]
+      - uses: actions/upload-artifact@v3
+        with:
+          name: loadTestResults
+          path: ${{ github.workspace }}/loadTest
+  release:
+    runs-on: ubuntu-latest
+    needs: load-test
+    strategy:
+      matrix:
+        frontend_replicas: [3]
+        frontend_cpu_limit: [250m]
+        frontend_mem_limit: [256Mi]
+      max-parallel: 1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Azure authentication (load testing)
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Get AKS Credentials
+        run: |
+          az aks get-credentials --resource-group ${{ secrets.AZURE_RESOURCE_GROUP_NAME }} --name ${{ secrets.AKS_NAME }}
+      - name: Apply Kubernetes Configuration
+        run: |
+          envsubst < manifests/app.yaml | kubectl apply -f -
+        env:
+          FRONTEND_REPLICAS: ${{ matrix.frontend_replicas }}
+          FRONTEND_CPU_LIMIT: ${{ matrix.frontend_cpu_limit }}
+          FRONTEND_MEM_LIMIT: ${{ matrix.frontend_mem_limit }}
+          FRONTEND_IMAGE: aksloadtestdemo.azurecr.io/${{ github.repository }}:${{ github.sha }}
