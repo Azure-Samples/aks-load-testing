@@ -20,9 +20,7 @@ This project framework provides the following features:
 * An [Azure Container Registry](https://learn.microsoft.com/en-us/azure/container-registry/) instance
 * An [Azure Load Testing](https://learn.microsoft.com/en-us/azure/load-testing/) instance
 
-#### Creating a resource group
-
-Start by creating an AKS cluster with
+#### Create a Resource Group
 
 ```bash
 RG_NAME=aks-load-test-demo
@@ -30,23 +28,16 @@ AKS_NAME=aks-demo-1
 REGION=westus2
 
 az group create --name $RG_NAME --location $REGION
-az aks create -g $RG_NAME -n $AKS_NAME --location $REGION --enable-managed-identity --node-count 2 --enable-addons monitoring --enable-msi-auth-for-monitoring  --generate-ssh-keys
 ```
 
 Note: the option `--enable-cluster-autoscaler` can be added to the aks create command to enable node pool autoscaling.
 
-#### Create an Azure Load Testing instance
-
-```bash
-ALT_NAME=alt-demo
-az load create --name $ALT_NAME --resource-group $RG_NAME --location $REGION
-```
-
 #### Create an Azure Container Registry
 
 ```bash
-ACR_NAME=myContainerRegistry
-az acr create -n $ACR_NAME -g $RG_NAME --sku basic
+[[ -z "$RANDOM_STR" ]] && RANDOM_STR=$(openssl rand -hex 3)
+# RANDOM_STR='bd1afc'
+az acr create -n "$acr${RANDOM_STR}" -g $RG_NAME --sku basic
 ```
 
 #### Create an Azure Kubernetes Service cluster
@@ -57,6 +48,13 @@ Create an AKS cluster with 2 nodes, a managed identity and [attach the ACR insta
 AKS_NAME=aks-demo-1
 
 az aks create -g $RG_NAME -n $AKS_NAME --location $REGION --enable-managed-identity --node-count 2 --enable-addons monitoring --enable-msi-auth-for-monitoring  --generate-ssh-keys --attach-acr $ACR_NAME --enable-azure-rbac
+```
+
+#### Create an Azure Load Testing instance
+
+```bash
+ALT_NAME=alt-demo
+az load create --name $ALT_NAME --resource-group $RG_NAME --location $REGION
 ```
 
 #### Create a service principal
