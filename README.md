@@ -38,7 +38,9 @@ SP_NAME=loadtesting
 #### Create a Resource Group
 
 ```bash
-az group create --name $RG_NAME --location $REGION
+az group create \
+    --name $RG_NAME \
+    --location $REGION
 ```
 
 Note: the option `--enable-cluster-autoscaler` can be added to the aks create command to enable node pool autoscaling.
@@ -46,7 +48,10 @@ Note: the option `--enable-cluster-autoscaler` can be added to the aks create co
 #### Create an Azure Container Registry
 
 ```bash
-az acr create -n $ACR_NAME -g $RG_NAME --sku basic
+az acr create \
+    --resource-group $RG_NAME \
+    --name $ACR_NAME \
+    --sku basic
 ```
 
 #### Create an Azure Kubernetes Service cluster
@@ -54,13 +59,26 @@ az acr create -n $ACR_NAME -g $RG_NAME --sku basic
 Create an AKS cluster with 2 nodes, a managed identity and [attach the ACR instance](https://learn.microsoft.com/en-us/azure/aks/cluster-container-registry-integration?tabs=azure-cli).
 
 ```bash
-az aks create -g $RG_NAME -n $AKS_NAME --location $REGION --enable-managed-identity --node-count 2 --enable-addons monitoring --enable-msi-auth-for-monitoring  --generate-ssh-keys --attach-acr $ACR_NAME --enable-azure-rbac
+az aks create \
+    --resource-group $RG_NAME \
+    --name $AKS_NAME \
+    --location $REGION \
+    --enable-managed-identity \
+    --node-count 2 \
+    --enable-addons monitoring \
+    --enable-msi-auth-for-monitoring  \
+    --generate-ssh-keys \
+    --attach-acr $ACR_NAME \
+    --enable-azure-rbac
 ```
 
 #### Create an Azure Load Testing instance
 
 ```bash
-az load create --name $ALT_NAME --resource-group $RG_NAME --location $REGION
+az load create \
+    --resource-group $RG_NAME \
+    --name $ALT_NAME \
+    --location $REGION
 ```
 
 #### Create a service principal
@@ -70,9 +88,12 @@ Create a service principal within the scope of the new resource group:
 ```bash
 SUBSCRIPTION_ID=$(az account show --query "id" -o tsv)
 
-az ad sp create-for-rbac --name $SP_NAME --role contributor \
-                         --scopes /subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG_NAME \
-                         --sdk-auth
+az ad sp create-for-rbac \
+    --name $SP_NAME \
+    --role contributor \
+    --scopes /subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG_NAME \
+    --sdk-auth
+
 # Copy the SDK output for the GitHub Action
 ```
 
@@ -81,7 +102,8 @@ Next, give the service principal contributor rights to the load testing resource
 ```bash
 OBJECT_ID=$(az ad sp list --filter "displayname eq '${SP_NAME}'" --query "[0].id" -o tsv)
 
-az role assignment create --assignee $OBJECT_ID \
+az role assignment create \
+    --assignee $OBJECT_ID \
     --role "Azure Kubernetes Service Contributor Role" \
     --scope /subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG_NAME \
     --subscription $SUBSCRIPTION_ID
