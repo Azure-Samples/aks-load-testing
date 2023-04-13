@@ -2,7 +2,7 @@
 
 This demo project showcases an automated load testing solution for Azure Kubernetes Service that acts as a release gate for a minimal SLO (Service Level Objective). There is also an example of a test configuration matrix for using Azure Load Testing to identify a right-size Pod configuration.
 
-The application is a simple web application based on the [Deploy an Azure Kubernetes Service cluster using the Azure CLI](https://learn.microsoft.com/en-us/azure/aks/learn/quick-kubernetes-deploy-cli) quick start tutorial.
+The application is a simple web application based on the [Deploy an Azure Kubernetes Service cluster using the Azure CLI](https://learn.microsoft.com/azure/aks/learn/quick-kubernetes-deploy-cli) quick start tutorial.
 
 ## Features
 
@@ -15,10 +15,10 @@ This project framework provides the following features:
 
 ### Prerequisites
 
-* An [Azure subscription](https://azure.microsoft.com/free/)
-* An [Azure Kubernetes Service](https://learn.microsoft.com/en-us/azure/aks/) cluster
-* An [Azure Container Registry](https://learn.microsoft.com/en-us/azure/container-registry/) instance
-* An [Azure Load Testing](https://learn.microsoft.com/en-us/azure/load-testing/) instance
+* An [Azure Subscription](https://azure.microsoft.com/free/)
+* An [Azure Kubernetes Service](https://learn.microsoft.com/azure/aks/) cluster
+* An [Azure Container Registry](https://learn.microsoft.com/azure/container-registry/) instance
+* An [Azure Load Testing](https://learn.microsoft.com/azure/load-testing/) instance
 
 #### Set environment variables
 
@@ -56,7 +56,7 @@ az acr create \
 
 #### Create an Azure Kubernetes Service cluster
 
-Create an AKS cluster with 2 nodes, a managed identity and [attach the ACR instance](https://learn.microsoft.com/en-us/azure/aks/cluster-container-registry-integration?tabs=azure-cli).
+Create an AKS cluster with 2 nodes, a managed identity and [attach the ACR instance](https://learn.microsoft.com/azure/aks/cluster-container-registry-integration?tabs=azure-cli).
 
 ```bash
 az aks create \
@@ -81,9 +81,9 @@ az load create \
     --location $REGION
 ```
 
-#### Create a service principal
+#### Create a Service Principal
 
-Create a service principal within the scope of the new resource group:
+Create a service principal within the scope of the new resource group.
 
 ```bash
 SUBSCRIPTION_ID=$(az account show --query "id" -o tsv)
@@ -97,7 +97,7 @@ az ad sp create-for-rbac \
 # Copy the SDK output for the GitHub Action
 ```
 
-Next, give the service principal contributor rights to the load testing resource. See [details](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#azure-kubernetes-service-contributor-role) if you want to assign custom roles here:
+Next, give the service principal contributor rights to the load testing resource. See [details](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#azure-kubernetes-service-contributor-role) if you want to assign custom roles here.
 
 ```bash
 OBJECT_ID=$(az ad sp list --filter "displayname eq '${SP_NAME}'" --query "[0].id" -o tsv)
@@ -111,7 +111,7 @@ az role assignment create \
 
 This step gives access to the GitHub Actions workflow to write to the cluster (make changes to the configuration via `kubectl apply`) and create load tests.
 
-Next, create a second service principal with access to publish to the Azure Container Registry. This will have a username/password that needs to be copied to GitHub secrets (see next section):
+Next, create a second service principal with access to publish to the Azure Container Registry. This will have a username/password that needs to be copied to GitHub secrets (see next section).
 
 ```bash
 SERVICE_PRINCIPAL_NAME=${SP_NAME}-docker
@@ -166,9 +166,9 @@ All tests run after this change will have the AKS metrics in the Test Run Detail
 
 ## Resources
 
-* [AKS and ACR Integration](https://learn.microsoft.com/en-us/azure/aks/cluster-container-registry-integration?tabs=azure-cli)
-* [Deploy an Azure Kubernetes Service cluster using the Azure CLI](https://learn.microsoft.com/en-us/azure/aks/learn/quick-kubernetes-deploy-cli)
-* [Integrate Azure Load Testing into GitHub Actions (Video)](https://learn.microsoft.com/en-us/shows/devops-lab/integrate-azure-load-testing-into-github-actions)
+* [AKS and ACR Integration](https://learn.microsoft.com/azure/aks/cluster-container-registry-integration?tabs=azure-cli)
+* [Deploy an Azure Kubernetes Service cluster using the Azure CLI](https://learn.microsoft.com/azure/aks/learn/quick-kubernetes-deploy-cli)
+* [Integrate Azure Load Testing into GitHub Actions (Video)](https://learn.microsoft.com/shows/devops-lab/integrate-azure-load-testing-into-github-actions)
 * [Azure Load Testing GA blog](https://aka.ms/MALT-GA)
-* [Azure Load Testing Resources](https://learn.microsoft.com/en-au/users/annaso/collections/rqznsygr4qgnyw?wt.mc_id=azloadtesting_learncollection202301_content_azuremktg)
-* [Azure Container Registry authentication with service principals](https://learn.microsoft.com/en-AU/azure/container-registry/container-registry-auth-service-principal)
+* [Azure Load Testing Resources](https://learn.microsoft.com/users/annaso/collections/rqznsygr4qgnyw)
+* [Azure Container Registry authentication with service principals](https://learn.microsoft.com/azure/container-registry/container-registry-auth-service-principal)
