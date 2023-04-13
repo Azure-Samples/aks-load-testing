@@ -103,12 +103,12 @@ echo "ACR_SECRET: $PASSWORD"
 
 The following secrets are required for the GitHub workflow:
 
-* `AZURE_CREDENTIALS` - An SDK service principal with stored
+* `AZURE_CREDENTIALS` - An SDK service principal created in the [Create a Service Principal](#create-a-service-principal) step
 * `AZURE_RESOURCE_GROUP_NAME` - The resource group with the Load Testing instance (`$RG_NAME`)
 * `AZURE_LOAD_TEST_NAME` - The name of the Azure Load Testing instance (`$ALT_NAME`)
 * `ACR_LOGIN` and `ACR_SECRET` - Azure Container Registry credentials.
 * `ACR_NAME` - The name of the ACR resource (`$ACR_NAME`)
-* `AKS_NAME` - The name of the AKS cluster.
+* `AKS_NAME` - The name of the AKS cluster (`$AKS_NAME`)
 
 ## Demo
 
@@ -119,6 +119,25 @@ The test will take around 1 hour to complete. Once this is completed, you can go
 ![Comparison screenshot](.screenshots/comparison.png)
 
 The CI/CD workflow will run automatically whenever code is committed to the main branch.
+
+### Adding AKS resource consumption to the Azure Load Testing comparison UI
+
+Edit the Load Test, go to _Configure_->_App Components_ then add filters for the resource group and add the AKS component.
+
+![Adding an app component](.screenshots/add_app_component.png)
+
+Next, within the Load Test edit panel, click _Configure_->_Metrics_ and add the following metrics:
+
+![Configuring metrics](.screenshots/configure_metrics.png)
+
+* `Microsoft.ContainerService/ManagedClusters` `kube_node_status_allocatable_cpu_cores` (Average)
+* `Microsoft.ContainerService/ManagedClusters` `kube_node_status_memory_bytes` (Average)
+* `Microsoft.ContainerService/ManagedClusters` `kube_pod_status_ready` (Total)
+* `Microsoft.ContainerService/ManagedClusters` `node_cpu_usage_percentage` (Average)
+
+All tests run after this change will have the AKS metrics in the Test Run Details pane:
+
+![AKS test metrics in test run details](.screenshots/aks_metrics_test_details.png)
 
 ## Resources
 
