@@ -8,8 +8,8 @@ The application is a simple web application based on the [Deploy an Azure Kubern
 
 This project framework provides the following features:
 
-* [Example GitHub workflow](.github/workflows/cicd.yml) to staging an image, running a load test and then promoting the image to a production deployment in AKS.
-* [Example GitHub workflow](.github/workflows/matrix_test.yml) for periodically running a load test matrix to identify a right-size Pod configuration.
+* [Example GitHub Actions workflow](.github/workflows/cicd.yml) to staging an image, running a load test and then promoting the image to a production deployment in AKS.
+* [Example GitHub Actions workflow](.github/workflows/matrix_test.yml) for periodically running a load test matrix to identify a right-size Pod configuration.
 
 ## Getting Started
 
@@ -82,7 +82,7 @@ az role assignment create --assignee $object_id \
     --subscription $subscription
 ```
 
-This step gives access to the GitHub action to write to the cluster (make changes to the configuration via `kubectl apply`) and create load tests.
+This step gives access to the GitHub Actions workflow to write to the cluster (make changes to the configuration via `kubectl apply`) and create load tests.
 
 Next, create a second service principal with access to publish to the Azure Container Registry. This will have a username/password that needs to be copied to GitHub secrets (see next section):
 
@@ -99,7 +99,7 @@ echo "ACR_SECRET: $PASSWORD"
 
 ### Configuring
 
-The following secrets are required for the GitHub workflow:
+The following secrets are required for the GitHub Actions workflow:
 
 * `AZURE_CREDENTIALS` - An SDK service principal created in the [Create a Service Principal](#create-a-service-principal) step
 * `AZURE_RESOURCE_GROUP_NAME` - The resource group with the Load Testing instance (`$RG_NAME`)
