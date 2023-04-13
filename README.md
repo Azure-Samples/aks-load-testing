@@ -143,6 +143,8 @@ The test will take around 1 hour to complete. Once this is completed, you can go
 
 ![Comparison screenshot](.screenshots/comparison.png)
 
+The base Azure Load Testing instance includes 50 virtual user hours. See [Azure Load Testing Pricing](aka.ms/malt-pricing) and [pricing calculator](https://aka.ms/malt-pricingcalc) for more detail.
+
 The CI/CD workflow will run automatically whenever code is committed to the main branch.
 
 ### Adding AKS resource consumption to the Azure Load Testing comparison UI
@@ -172,3 +174,4 @@ All tests run after this change will have the AKS metrics in the Test Run Detail
 * [Azure Load Testing GA blog](https://aka.ms/MALT-GA)
 * [Azure Load Testing Resources](https://learn.microsoft.com/users/annaso/collections/rqznsygr4qgnyw)
 * [Azure Container Registry authentication with service principals](https://learn.microsoft.com/azure/container-registry/container-registry-auth-service-principal)
+* [Azure Load Testing Pricing](aka.ms/malt-pricing)
