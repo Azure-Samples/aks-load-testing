@@ -20,13 +20,24 @@ This project framework provides the following features:
 * An [Azure Container Registry](https://learn.microsoft.com/en-us/azure/container-registry/) instance
 * An [Azure Load Testing](https://learn.microsoft.com/en-us/azure/load-testing/) instance
 
-#### Create a Resource Group
+#### Set environment variables
+
+Set some environment variables that we will use throughout.
 
 ```bash
 RG_NAME=aks-load-test-demo
-AKS_NAME=aks-demo-1
 REGION=westus2
+[[ -z "$RANDOM_STR" ]] && RANDOM_STR=$(openssl rand -hex 3)
+# RANDOM_STR='bd1afc'
+ACR_NAME="$acr${RANDOM_STR}"
+AKS_NAME=aks-demo-1
+ALT_NAME=alt-demo
+SP_NAME=loadtesting
+```
 
+#### Create a Resource Group
+
+```bash
 az group create --name $RG_NAME --location $REGION
 ```
 
@@ -35,9 +46,7 @@ Note: the option `--enable-cluster-autoscaler` can be added to the aks create co
 #### Create an Azure Container Registry
 
 ```bash
-[[ -z "$RANDOM_STR" ]] && RANDOM_STR=$(openssl rand -hex 3)
-# RANDOM_STR='bd1afc'
-az acr create -n "$acr${RANDOM_STR}" -g $RG_NAME --sku basic
+az acr create -n $ACR_NAME -g $RG_NAME --sku basic
 ```
 
 #### Create an Azure Kubernetes Service cluster
@@ -45,15 +54,12 @@ az acr create -n "$acr${RANDOM_STR}" -g $RG_NAME --sku basic
 Create an AKS cluster with 2 nodes, a managed identity and [attach the ACR instance](https://learn.microsoft.com/en-us/azure/aks/cluster-container-registry-integration?tabs=azure-cli).
 
 ```bash
-AKS_NAME=aks-demo-1
-
 az aks create -g $RG_NAME -n $AKS_NAME --location $REGION --enable-managed-identity --node-count 2 --enable-addons monitoring --enable-msi-auth-for-monitoring  --generate-ssh-keys --attach-acr $ACR_NAME --enable-azure-rbac
 ```
 
 #### Create an Azure Load Testing instance
 
 ```bash
-ALT_NAME=alt-demo
 az load create --name $ALT_NAME --resource-group $RG_NAME --location $REGION
 ```
 
@@ -62,11 +68,10 @@ az load create --name $ALT_NAME --resource-group $RG_NAME --location $REGION
 Create a service principal within the scope of the new resource group:
 
 ```bash
-subscription=$(az account show --query "id" -o tsv)
-SP_NAME=loadtesting
+SUBSCRIPTION_ID=$(az account show --query "id" -o tsv)
 
 az ad sp create-for-rbac --name $SP_NAME --role contributor \
-                         --scopes /subscriptions/$subscription/resourceGroups/$RG_NAME \
+                         --scopes /subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG_NAME \
                          --sdk-auth
 # Copy the SDK output for the GitHub Action
 ```
@@ -74,12 +79,12 @@ az ad sp create-for-rbac --name $SP_NAME --role contributor \
 Next, give the service principal contributor rights to the load testing resource. See [details](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#azure-kubernetes-service-contributor-role) if you want to assign custom roles here:
 
 ```bash
-object_id=$(az ad sp list --filter "displayname eq '${SP_NAME}'" --query "[0].id" -o tsv)
+OBJECT_ID=$(az ad sp list --filter "displayname eq '${SP_NAME}'" --query "[0].id" -o tsv)
 
-az role assignment create --assignee $object_id \
+az role assignment create --assignee $OBJECT_ID \
     --role "Azure Kubernetes Service Contributor Role" \
-    --scope /subscriptions/$subscription/resourceGroups/$RG_NAME \
-    --subscription $subscription
+    --scope /subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG_NAME \
+    --subscription $SUBSCRIPTION_ID
 ```
 
 This step gives access to the GitHub Actions workflow to write to the cluster (make changes to the configuration via `kubectl apply`) and create load tests.
