@@ -24,7 +24,7 @@ This project framework provides the following features:
 
 Start by creating an AKS cluster with
 
-```console
+```bash
 RG_NAME=aks-load-test-demo
 AKS_NAME=aks-demo-1
 REGION=westus2
@@ -37,14 +37,14 @@ Note: the option `--enable-cluster-autoscaler` can be added to the aks create co
 
 #### Create an Azure Load Testing instance
 
-```console
+```bash
 ALT_NAME=alt-demo
 az load create --name $ALT_NAME --resource-group $RG_NAME --location $REGION
 ```
 
 #### Create an Azure Container Registry
 
-```console
+```bash
 ACR_NAME=myContainerRegistry
 az acr create -n $ACR_NAME -g $RG_NAME --sku basic
 ```
@@ -53,7 +53,7 @@ az acr create -n $ACR_NAME -g $RG_NAME --sku basic
 
 Create an AKS cluster with 2 nodes, a managed identity and [attach the ACR instance](https://learn.microsoft.com/en-us/azure/aks/cluster-container-registry-integration?tabs=azure-cli).
 
-```console
+```bash
 AKS_NAME=aks-demo-1
 
 az aks create -g $RG_NAME -n $AKS_NAME --location $REGION --enable-managed-identity --node-count 2 --enable-addons monitoring --enable-msi-auth-for-monitoring  --generate-ssh-keys --attach-acr $ACR_NAME --enable-azure-rbac
@@ -63,7 +63,7 @@ az aks create -g $RG_NAME -n $AKS_NAME --location $REGION --enable-managed-ident
 
 Create a service principal within the scope of the new resource group:
 
-```console
+```bash
 subscription=$(az account show --query "id" -o tsv)
 SP_NAME=loadtesting
 
@@ -75,7 +75,7 @@ az ad sp create-for-rbac --name $SP_NAME --role contributor \
 
 Next, give the service principal contributor rights to the load testing resource. See [details](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#azure-kubernetes-service-contributor-role) if you want to assign custom roles here:
 
-```console
+```bash
 object_id=$(az ad sp list --filter "displayname eq '${SP_NAME}'" --query "[0].id" -o tsv)
 
 az role assignment create --assignee $object_id \
@@ -88,7 +88,7 @@ This step gives access to the GitHub action to write to the cluster (make change
 
 Next, create a second service principal with access to publish to the Azure Container Registry. This will have a username/password that needs to be copied to GitHub secrets (see next section):
 
-```console
+```bash
 SERVICE_PRINCIPAL_NAME=${SP_NAME}-docker
 ACR_REGISTRY_ID=$(az acr show --name $ACR_NAME --query "id" --output tsv)
 PASSWORD=$(az ad sp create-for-rbac --name $SERVICE_PRINCIPAL_NAME --scopes $ACR_REGISTRY_ID --role acrpull --query "password" --output tsv)
