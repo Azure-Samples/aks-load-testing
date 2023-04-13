@@ -1,6 +1,6 @@
-# Azure Load Testing and Azure Kubernetes Service Demo
+# Azure Load Testing and Azure Kubernetes Service Sample Project
 
-This demo project showcases an automated load testing solution for Azure Kubernetes Service that acts as a release gate for a minimal SLO (Service Level Objective). There is also an example of a test configuration matrix for using Azure Load Testing to identify a right-size Pod configuration.
+This sample project showcases an automated load testing solution for Azure Kubernetes Service that acts as a release gate for a minimal SLO (Service Level Objective). There is also an example of a test configuration matrix for using Azure Load Testing to identify a right-size Pod configuration.
 
 The application is a simple web application based on the [Deploy an Azure Kubernetes Service cluster using the Azure CLI](https://learn.microsoft.com/azure/aks/learn/quick-kubernetes-deploy-cli) quick start tutorial.
 
@@ -135,7 +135,7 @@ The following secrets are required for the GitHub Actions workflow:
 * `ACR_NAME` - The name of the ACR resource (`$ACR_NAME`)
 * `AKS_NAME` - The name of the AKS cluster (`$AKS_NAME`)
 
-## Demo
+## Sample Project
 
 The matrix test is run manually, go to Actions, "Test AKS Configuration" and click the `Run Workflow` button.
 
