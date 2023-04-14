@@ -4,6 +4,10 @@ This sample project showcases an automated load testing solution for Azure Kuber
 
 The application is a simple web application based on the [Deploy an Azure Kubernetes Service cluster using the Azure CLI](https://learn.microsoft.com/azure/aks/learn/quick-kubernetes-deploy-cli) quick start tutorial.
 
+Checkout a recording of this demo on YouTube:
+
+[<img src="https://img.youtube.com/vi/lWHfSRE9FUY/maxresdefault.jpg" width="50%">](https://youtu.be/lWHfSRE9FUY)
+
 ## Features
 
 This project framework provides the following features:
