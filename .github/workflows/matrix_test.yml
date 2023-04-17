@@ -59,7 +59,7 @@ jobs:
           echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
           echo "FRONTEND_HOST=$(kubectl get service azure-vote-front -o jsonpath='{.status.loadBalancer.ingress[0].ip}')" >> $GITHUB_OUTPUT
       - name: 'Azure Load Testing'
-        uses: tonybaloney/load-testing@write_metrics_to_pr
+        uses: azure/load-testing@v1.1.14
         with:
           loadTestConfigFile: 'loadtests/configuration-test.yaml'
           loadTestResource: ${{ secrets.AZURE_LOAD_TEST_NAME }}
